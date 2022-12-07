@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <div id="test">
+      你好，{{content}},{{description}}
+      <span>{{description}}</span>
+      {{obj.x}}
+      <input type="text" v-model="obj.x" id="" />
+      <!-- 识别标签上的属性v-model -->
+      <ul>
+        <li v-for="(key) in list">
+          姓名：{{key.a}}, 年龄：{{key.b}}
+          <!-- <p v-for="{temp} in key.list">
+            p里面既可以访问到p里面的，也可以访问到li里面的，所以有一个属性的合并merge
+          </p> -->
+        </li>
+      </ul>
+    </div>
+    <script type="module">
+      import Due from "./core/index.js";
+      window.test = new Due({
+        el: "test", //我这里只允许用id挂载
+        data: {
+          content: "panda",
+          description: "panda say hello",
+          obj: {
+            x: 1,
+            y: 2,
+          },
+          list: [
+            { a: "panda", b: 19 },
+            { a: "monkey", b: 20 },
+          ],
+        },
+      });
+    </script>
+  </body>
+</html>

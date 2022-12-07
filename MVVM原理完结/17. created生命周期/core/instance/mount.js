@@ -1,0 +1,128 @@
+import VNode from "../../vdom/vnode.js";
+import { mergeAttr } from "../util/ObjectUtil.js";
+import checkVBind from "./grammer/vbind.js";
+import { vforInit } from "./grammer/vfor.js";
+import { vmodel } from "./grammer/vmodel.js";
+import { checkVOn } from "./grammer/von.js";
+import {
+  getTemplate2VnodeMap,
+  getVnode2TemplateMap,
+  getVNodeByTemplate,
+  prepareRender,
+  clearMap,
+} from "./render.js";
+export function initMount(Due) {
+  /**
+   * 允许先不传递el，把due对象创建完了后再用mount方法挂载
+   * @param {*} el
+   */
+  Due.prototype.$mount = function (el) {
+    let vm = this;
+    let rootDom = document.getElementById(el);
+    mount(vm, rootDom);
+  };
+}
+
+/**
+ * 挂载函数
+ * @param {*} vm
+ * @param {*} el
+ */
+export function mount(vm, el) {
+  // console.log("begin mount");
+  vm._vnode = constructVNode(vm, el, null); // 根节点没有父节点，null
+  // 进行预备渲染;（建立渲染索引，通过模板找vnode，通过vnode找模板）
+  prepareRender(vm, vm._vnode);
+  // console.log(getTemplate2VnodeMap());
+  // console.log(getVnode2TemplateMap());
+}
+
+/**
+ * 建立虚拟dom树，深度优先搜索
+ * @param {*} vm
+ * @param {*} elm
+ * @param {*} parent
+ */
+function constructVNode(vm, elm, parent) {
+  let vnode = analysisAttr(vm, elm, parent); //如果是虚拟节点，说明此节点在analysisAttr里面创建完了
+  if (vnode == null) {
+    let children = [];
+    let text = getNodeText(elm); // 保证text一直有值
+    let data = null;
+    let nodeType = elm.nodeType; //与元素的type保持一致
+    let tag = elm.nodeName; // DIV，SPAN
+    vnode = new VNode(tag, elm, children, text, data, parent, nodeType);
+    if (elm.nodeType == 1 && elm.getAttribute("env")) {
+      // 不仅是标签，而且标签上还有env属性
+      vnode.env = mergeAttr(vnode.env, JSON.parse(elm.getAttribute("env")));
+      // console.log(1);
+    } else {
+      vnode.env = mergeAttr(vnode.env, parent ? parent.env : {});
+    }
+  }
+  checkVBind(vm, vnode);
+  checkVOn(vm, vnode);
+  // 当前的元素是否还有子元素
+  let childs =
+    vnode.nodeType === 0 ? vnode.parent.elm.childNodes : vnode.elm.childNodes;
+  let len =
+    vnode.nodeType === 0
+      ? vnode.parent.elm.childNodes.length
+      : vnode.elm.childNodes.length;
+  for (let i = 0; i < len; i++) {
+    let childNodes = constructVNode(vm, childs[i], vnode); // 深度优先，自己有多少孩子，就循环遍历多少遍
+    if (childNodes instanceof VNode) {
+      // 返回单一节点
+      vnode.children.push(childNodes);
+    } else {
+      // 返回节点数组
+      vnode.children = vnode.children.concat(childNodes);
+    }
+  }
+
+  return vnode;
+}
+
+function getNodeText(elm) {
+  // 只有#TEXT里面有文本，其他都是标签里面的文本子节点，不是文本
+  // 所以只有文本节点里面才有文本
+  if (elm.nodeType == 3) {
+    return elm.nodeValue;
+  } else {
+    return "";
+  }
+}
+
+function analysisAttr(vm, elm, parent) {
+  if (elm.nodeType === 1) {
+    // 是标签才分析属性
+    let attrNames = elm.getAttributeNames();
+    // console.log(attrNames);
+    if (attrNames.indexOf("v-model") > -1) {
+      vmodel(vm, elm, elm.getAttribute("v-model"));
+    }
+    if (attrNames.indexOf("v-for") > -1) {
+      // (key) in list
+      // 第四个参数是vfor里面的值
+      return vforInit(vm, elm, parent, elm.getAttribute("v-for"));
+    }
+  }
+}
+
+export function rebuild(vm, template) {
+  let virtualNode = getVNodeByTemplate(template);
+  // console.log(virtualNode);
+  for (let i = 0; i < virtualNode.length; i++) {
+    virtualNode[i].parent.elm.innerHTML = "";
+    virtualNode[i].parent.elm.appendChild(virtualNode[i].elm);
+    // console.log(virtualNode[i].parent);
+    let result = constructVNode(vm, virtualNode[i].elm, virtualNode[i].parent);
+    // console.log(result.children.length)
+    virtualNode[i].parent.children = [result];
+    // console.log(result);
+    clearMap();
+    prepareRender(vm, vm._vnode);
+  }
+}
+
+// 测试：test.list.push({a:'q',b:21})
