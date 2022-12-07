@@ -1,0 +1,122 @@
+<body>
+    123
+    <div id="app"></div>
+    <script>
+        // 模拟 Vue的data
+        let data = {
+            msg: "哈哈",
+            age: "18",
+        };
+        // 模拟 Vue 实例
+        let vm = {};
+        // 把多个属性转化 响应式
+        function proxyData() {
+            // 把data 中每一项都[msg,age] 拿出来操作
+            Object.keys(data).forEach((key) => {
+                // 对 vm 的 属性 进行数据劫持
+                Object.defineProperty(vm, key, {
+                    // 可枚举
+                    enumerable: true,
+                    // 可配置
+                    configurable: true,
+                    // 获取数据
+                    get() {
+                        return data[key];
+                    },
+                    // 设置 属性值
+                    set(newValue) {
+                        // 如果传入的值相等就不用修改
+                        if (newValue === data[key]) return;
+                        // 修改数据
+                        data[key] = newValue;
+                        document.querySelector("#app").textContent = data[key];
+                    },
+                });
+            });
+        }
+        // 调用方法
+        proxyData(data);
+    </script>
+</body>
+<script>
+    // 发布者,订阅中心
+    class Dep {
+        constructor() {
+            this.subs = [];
+        }
+        // 此处的sub是依赖收集时，Dep.target也就是当前正在执行的watcher
+        addSubs(sub) {
+            if (this.subs.indexOf(sub) < 0) { this.subs.push(sub); }
+        } notify() {
+            this.subs.forEach(item => item.update())
+        }
+    }
+    Dep.target = null;
+
+    // 订阅者
+    class Watcher {
+        constructor(obj, key, updateCb) {
+            this.data = obj;
+            this.key = key;
+            this.updateCb = updateCb;
+            this.value = this.get()
+        }
+        get() {
+            Dep.target = this;
+            this.value = this.data[this.key];
+            Dep.target = null;
+            return this.value;
+        }
+        update() {
+            const oldValue = this.value;
+            const newValue = this.get();
+            this.updateCb(newValue, oldValue);
+        }
+    }
+
+    // observer类 劫持数据
+    class Observer {
+        constructor(obj) {
+            this.data = obj;
+            if (this.data == null || typeof this.data !== "object") {
+                return;
+            }
+            if (Array.isArray(this.data)) {
+                this.observeArray();
+            } else {
+                this.walk();
+            }
+        }
+        walk() {
+            for (let i in this.data) {
+                this.defineReactive(this.data, i);
+            }
+        }
+        observeArray() {
+            for (let i = 0; i < this.data.length; i++) {
+                observe(this.data[i]);
+            }
+        }
+        defineReactive(obj, key) {
+            let val = obj[key];
+            observe(val); const dep = new Dep();
+            Object.defineProperty(obj, key, {
+                get() {
+                    if (Dep.target) {
+                        dep.addSubs(Dep.target)
+                    } return val;
+                },
+                set(newVal) {
+                    if (newVal === val) { return; } val = newVal; observe(val);
+                    dep.notify();
+                }
+            })
+        }
+    } // 数据监测方法 function observe(data) { new Observer(data); } // 写一个最简单的例子 const obj={ a: 1 };
+    observe(obj); new Watcher(obj, "a", (newVal, oldVal) => {
+        console.log("newVal", newVal);
+        console.log("oldVal", oldVal + '\n');
+    });
+    obj.a = 2;
+    obj.a = 3;
+</script>

@@ -1,0 +1,101 @@
+<script>
+    // 双向绑定其实就是vue中的一个变量被劫持,当数据变化的时候,修改视图,当视图更改,数据变化
+
+    const data = {
+        text: 'default'
+    }
+    const input = document.getElementById('input');
+    const span = document.getElementById('span');
+    // 数据劫持
+    Object.defineProperty(data, 'text', {
+        // 数据变化引起视图更改
+        set(newVal) {
+            input.value = newVal;
+            span.innerHTML = newVal;
+        }
+    })
+    // 视图变化引起数据更改
+    input.addEventListener('keyup', function (e) {
+        data.text = e.target.value;
+    })
+
+
+
+
+</script>
+
+<script>
+    // 双向绑定其实就是vue中的一个变量被劫持,当数据变化的时候,修改视图,当视图更改,数据变化
+
+    const data = {
+        text: 'default'
+    }
+    const input = document.getElementById('input');
+    const span = document.getElementById('span');
+    // 数据劫持
+    const proxy = new Proxy(data, {
+        // 数据变化引起视图更改
+        set(target, key, value, receiver) {
+            target[key] = value;
+            input.value = value;
+            span.innerHTML = value;
+            // let res = Reflect(target,key,value,receiver)
+            return value;
+        }
+    })
+    // 视图变化引起数据更改
+    input.addEventListener('keyup', function (e) {
+        proxy.text = e.target.value;
+    })
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>测试</h1>
+    <input type="text" id="input">
+    <span id="showMsg"></span>
+    <script>
+        const data = {
+            text: 'default'
+        }
+        const input = document.getElementById('input');
+        const span = document.getElementById('showMsg');
+        // // 数据劫持
+        // Object.defineProperty(data, 'text', {
+        //     // 数据变化引起视图更改
+        //     set(newVal) {
+        //         input.value = newVal;
+        //         span.innerHTML = newVal;
+        //     }
+        // })
+        // // 视图变化引起数据更改
+        // input.addEventListener('keyup', function (e) {
+        //     data.text = e.target.value;
+        // })
+        const proxy = new Proxy(data, {
+            // 数据变化引起视图更改
+            set(target, key, value, receiver) {
+                target[key] = value;
+                input.value = value;
+                span.innerHTML = value;
+                // let res = Reflect(target,key,value,receiver)
+                return value;
+            }
+        })
+        // 视图变化引起数据更改
+        input.addEventListener('keyup', function (e) {
+            proxy.text = e.target.value;
+        })
+    </script>
+</body>
+
+</html>

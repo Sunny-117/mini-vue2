@@ -1,0 +1,37 @@
+<body>
+    <div>
+        <button id="myBtn">改变username</button>
+        <input type="text" id="myInput">
+        <h1 id="myTitle"></h1>
+    </div>
+</body>
+<script>
+    let userinfo = {
+        username: '小明',
+    };
+    //开始监控
+    watcher();
+    function watcher() {
+        Object.defineProperty(userinfo, "username", {
+            set(value) {
+                document.querySelector('#myInput').value = value;
+                document.querySelector('#myTitle').innerHTML = value;
+            },
+            get(val) {
+                return val;
+            },
+        });
+    }
+
+    //给input绑定input事件，实时修改username的值
+    document.querySelector('#myInput').oninput = function (e) {
+        userinfo.username = e.target.value;
+    }
+    //给button绑定点击事件，修改username的值
+    document.querySelector('#myBtn').onclick = function () {
+        let value = '小明';
+        userinfo.username = value;
+    }
+</script>
+
+</html>

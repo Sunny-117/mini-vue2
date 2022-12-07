@@ -1,0 +1,63 @@
+实习一个vue侦听器效果
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+
+<body>
+    <script>
+        class Observer {
+            constructor(value) {
+                this.value = value;
+                if (Array.isArray(value)) {
+                    //数组的逻辑
+                } else {
+                    //对象的逻辑
+                    this.walk(value);
+                }
+            }
+            walk(obj) {
+                const keys = Object.keys(obj);
+                for (let i = 0; i < keys.length; i++) {
+                    defineReactive(obj, keys[i]);
+                }
+            }
+        }
+        //循环 让对象的每一个属性都可观测
+        function defineReactive(obj, key, val) {
+            if (arguments.length == 2) {
+                val = obj[key];
+            }
+            if (typeof val === "object") {
+                //递归
+            }
+            Object.defineProperty(obj, key, {
+                enumerable: true, //可枚举
+                configurable: true, //可改变
+                get() {
+                    console.log(`${key}属性被读取了`);
+                    return val;
+                },
+                set(newVal) {
+                    console.log(`${key}属性被修改了,新值为${newVal}`);
+                    val = newVal;
+                },
+            });
+        }
+
+        let obj = new Observer({
+            name: "小明",
+            age: 18,
+        });
+        console.log(obj.value.name);
+        obj.value.age = 20;
+    </script>
+</body>
+
+</html>
