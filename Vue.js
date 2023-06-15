@@ -3,7 +3,7 @@ import createResponsive from "./dataResponsive.js"
 import render from './render.js'
 
 export default function Vue(options) {
-    //     保存el和data配置
+    // 保存el和data配置
     this.$el = options && options.el;
     this.$data = options && options.data;
     // 根据el创建虚拟节点
