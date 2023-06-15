@@ -1,3 +1,5 @@
+import { isObject } from "shared";
+
 /**
  * 将原始对象的某个属性添加到代理对象中
  * @param {*} originalObj 
@@ -6,15 +8,15 @@
  * @param {*} callback 
  */
 function proxyProp(originalObj, targetObj, prop, callback) {
-    if (typeof originalObj[prop] === "object") {
+    if (isObject(originalObj[prop])) {
         var newTarget = {}; //新的要代理该属性的对象
         //要代理的属性是一个对象
         createResponsive(originalObj[prop], newTarget, callback);
         Object.defineProperty(targetObj, prop, {
-            get: function(){
+            get: function () {
                 return newTarget;
             },
-            set: function(value){
+            set: function (value) {
                 originalObj[prop] = value;
                 newTarget = value;
                 callback && callback(prop);

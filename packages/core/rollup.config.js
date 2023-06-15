@@ -4,12 +4,15 @@ import commonjs from 'rollup-plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 
 export default {
-    input: 'index.js',
-    output: {
-        file: 'dist/mini-vue2.js',
-        format: 'umd',
-        name: 'miniVue2',
+    input: './src/index.js',
+    output: [{
+        file: 'dist/mini-vue2.esm.js',
+        format: 'esm'
     },
+    {
+        file: 'dist/mini-vue2.cjs.js',
+        format: 'cjs'
+    }],
     plugins: [
         resolve(),
         commonjs(),
