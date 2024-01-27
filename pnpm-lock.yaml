@@ -24,7 +24,7 @@ importers:
 
   packages/playground:
     specifiers:
-      mini-vue2: 1.0.0
+      mini-vue2: link:../core
       vite: ^4.3.9
     dependencies:
       mini-vue2: link:../core
